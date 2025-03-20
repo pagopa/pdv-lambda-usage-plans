@@ -38,6 +38,7 @@ jobs:
 
   
       - name: Deploy Lambda function (${{ github.event.inputs.environment }})
+        working-directory: src
         run: |
           aws lambda update-function-code \
           --function-name ${{vars.LAMBDA_FUNCTION_NAME}} \
