@@ -1,0 +1,40 @@
+name: Deploy Lambda into AWS Tokenizer
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose environment'
+        type: choice
+        required: true
+        options:
+          - uat
+          - prod
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Zip Lambda
+        working-directory: src
+        run: |
+          mkdir -p dist
+          zip -r ./dist/lambda-usage-plans.zip *.py          
+          echo "Package created at dist/lambda-usage-plans.zip"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
+        with:
+          role-to-assume: ${{ vars.IAM_ROLE_DEPLOY_TO_TOKENIZER }}
+          aws-region: eu-south-1
+
+  
+      - name: Deploy Lambda function (${{ github.event.inputs.environment }})
+        run: |
+          aws lambda update-function-code \
+          --function-name ${{vars.LAMBDA_FUNCTION_NAME}} \
+          --zip-file fileb://dist/lambda-usage-plans.zip
+          
