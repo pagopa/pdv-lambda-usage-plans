@@ -10,6 +10,11 @@ on:
         options:
           - uat
           - prod
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+  
 jobs:
   deploy:
     runs-on: ubuntu-24.04
@@ -33,6 +38,7 @@ jobs:
 
   
       - name: Deploy Lambda function (${{ github.event.inputs.environment }})
+        working-directory: src
         run: |
           aws lambda update-function-code \
           --function-name ${{vars.LAMBDA_FUNCTION_NAME}} \
